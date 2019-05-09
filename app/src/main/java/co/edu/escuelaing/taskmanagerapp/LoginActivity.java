@@ -8,16 +8,30 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import androidx.appcompat.app.AppCompatActivity;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText username, password;
-    Button login;
+    private EditText username, password;
 
-    TextView attempts;
-    int counter = 3;
+    private Button login;
+
+    private TextView attempts;
+
+    private int counter = 3;
+
+    private AuthService authService;
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool( 1 );
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(username.getText().toString().equals("admin") && password.getText().toString().equals("admin")) {
+                if (username.getText().toString().equals("admin") && password.getText().toString().equals("admin")) {
                     Toast.makeText(LoginActivity.this,"You have Authenticated Successfully", Toast.LENGTH_LONG).show();
 
                 } else if (username.length() < 3) {
@@ -55,5 +69,31 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://10.0.2.2:8080/") //localhost for emulator
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        authService = retrofit.create(AuthService.class);
+
+    }
+
+    public void onLoginClicked(View view) {
+
+        executorService.execute(new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+                    Response<Token> response =
+                            authService.login(new LoginWrapper("test@mail.com", "password")).execute();
+                    Token token = response.body();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

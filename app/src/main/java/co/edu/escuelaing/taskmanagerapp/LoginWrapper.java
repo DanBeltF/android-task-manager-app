@@ -1,7 +1,5 @@
 package co.edu.escuelaing.taskmanagerapp;
 
-import java.util.Objects;
-
 public class LoginWrapper {
 
     private String email;
